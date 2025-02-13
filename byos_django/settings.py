@@ -128,3 +128,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # application specific
 PW_SERVER = os.environ.get("PW_SERVER")
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+
+
+if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
+    CSRF_TRUSTED_ORIGINS = []
+    for host in ALLOWED_HOSTS:
+        CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
+        CSRF_TRUSTED_ORIGINS.append(f"http://{host}:8000")
