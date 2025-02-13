@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>TRMNL Preview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" data-name="vs/editor/editor.main"
+          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/editor/editor.main.min.css">
+</head>
+<body style="margin: 0; padding: 0;">
+<div class="flex h-screen">
+    <div class="flex-1 bg-gray-100 p-1">
+        <div id="container" style="height:100%;"></div>
+    </div>
+    <div class="flex-1 bg-gray-100 p-1">
+        <div>
+            <p id="render_time"></p>
+            <img id="preview_img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                 alt="Preview"
+                 style="width: 800px; height: 480px;">
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        window.default_template = atob(`{{ initial_content|safe }}`);
+        window.render_content = window.default_template;
+        window.last_render_content = '';
+
+        function renderTemplate() {
+            if (window.last_render_content !== window.render_content) {
+                window.last_render_content = window.render_content;
+                previewSocket.send(JSON.stringify({html: window.render_content}));
+            }
+        }
+
+        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'}});
+        require(["vs/editor/editor.main"], () => {
+            const editor = monaco.editor.create(document.getElementById('container'), {
+                language: 'html',
+                theme: 'vs-dark',
+                value: window.default_template,
+            });
+
+            editor.onDidChangeModelContent(() => {
+                window.render_content = editor.getValue();
+                if (window.send_timeout) {
+                    clearTimeout(window.send_timeout);
+                }
+                window.send_timeout = setTimeout(() => {
+                    renderTemplate();
+                }, 300);
+            });
+
+            renderTemplate();
+        });
+
+        function startSocket() {
+            window.previewSocket = new WebSocket(
+                `ws://${window.location.host}/ws/preview`
+            );
+
+            previewSocket.onmessage = function (e) {
+                const data = JSON.parse(e.data)[0];
+                // update the iframe content
+                document.getElementById('preview_img').src = data.content;
+                // update the render time
+                document.getElementById('render_time').innerText = `Render time: ${data.render_time}s`;
+                setTimeout(renderTemplate, 3000);
+            }
+
+            previewSocket.onopen = function (e) {
+                previewSocket.send(JSON.stringify({html: window.render_content}));
+            }
+
+            previewSocket.onclose = function (e) {
+                console.error('Socket closed unexpectedly');
+                setTimeout(function () {
+                    startSocket()
+                }, 1000);
+            }
+        }
+
+        startSocket();
+    });
+</script>
+</body>
+</html>

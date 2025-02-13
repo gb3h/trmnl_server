@@ -1,0 +1,10 @@
+data/
+static/
+.env
+.dockerignore
+.isort.cfg
+.pre-commit-config.yaml
+docker-compose.yml
+Dockerfile
+env-sample
+README.md
