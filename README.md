@@ -52,3 +52,22 @@ python manage.py runserver 0.0.0.0:8000
   * Use whatever HTML you want. I recommend using the boilerplate in `temmplates/base.html` to make use of the framework.
   * Click `Save` and wait a moment for the image to be generated.
   * On the next refresh (defaults to 900 seconds, can be configured on the Device edit page) your TRMNL will update to the new screen.
+
+#### API
+
+Generate a screen for a specific device by creating an API Key from Admin > API Keys > Add, then:
+
+```shell
+curl --location 'http://your.ip.address.here:8000/api/v1/generate_screen' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer xxxxxx' \
+--data '{
+  "device": "XXXXXX", # friendly ID
+  "html": "<p>Made via API</p>"
+}'
+```
+
+Troubleshooting:
+
+* After creating an API Key, it appears just once following Save > redirect
+* For the API Key to be valid, your device must belong to a user before creating and it with that user
