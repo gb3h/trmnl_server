@@ -27,7 +27,7 @@ Continue on to the [Usage](#Usage) section to get started.
 
 #### Steps
 ```shell
-git clone https://github.com/Omeryl/byos_django.git
+git clone https://github.com/usetrmnl/byos_django.git
 cd byos_django
 
 cp env-sample .env
